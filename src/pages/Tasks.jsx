@@ -11,8 +11,7 @@ const Tasks = () => {
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [tasks, setTasks] = useState([]);
-  const [filteredTasks, setFilteredTasks] = useState([]);
+  const [isAddingTask, setIsAddingTask] = useState(false);
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [isEditingTask, setIsEditingTask] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
