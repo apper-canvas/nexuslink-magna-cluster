@@ -295,8 +295,7 @@ const Contacts = () => {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-primary-light/10 flex items-center justify-center text-primary">
-                    key={contact.Id}
-                        </div>
+                          <ApperIcon name="User" size={16} /></div>
                         <div>
                           <p className="font-medium">{contact.firstName} {contact.lastName}</p>
                           <p className="text-sm text-surface-500 md:hidden">{contact.email}</p>
@@ -589,7 +588,7 @@ const Contacts = () => {
                         `}>
                           {currentContact.status}
                         </span>
-                      </span> 
+                      </div>
                     </div>
                   </div>
                   
