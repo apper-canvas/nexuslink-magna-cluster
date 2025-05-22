@@ -154,7 +154,7 @@ function App() {
                 <ApperIcon name="Network" size={18} />
               </div>
               <h1 className="text-xl font-bold text-surface-900 dark:text-white">NexusLink</h1>
-      {/* Header */}
+            </div>
             
             <div className="flex items-center gap-3">
               {isAuthenticated && (
@@ -178,7 +178,6 @@ function App() {
                 )}
               </motion.button>
             </div>
-              {darkMode ? (
         </header>
         
         {/* Main Content */}
