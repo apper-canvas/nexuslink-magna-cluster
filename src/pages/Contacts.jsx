@@ -57,8 +57,8 @@ const Contacts = () => {
         contact?.firstName?.toLowerCase().includes(term) ||
         contact?.lastName?.toLowerCase().includes(term) ||
         contact?.email?.toLowerCase().includes(term) ||
-        contact?.company?.toLowerCase()?.includes(term)
-      );
+        contact?.company?.toLowerCase().includes(term)
+      ));
     }
     
     // Apply type filter
@@ -350,10 +350,10 @@ const Contacts = () => {
                     </td>
                   </tr>
                 ))
-                    {contacts?.length === 0 ? (
+              ) : (
                 <tr>
                   <td colSpan="6" className="px-4 py-8 text-center text-surface-500">
-                    {contacts.length === 0 ? (
+                    {contacts?.length === 0 ? (
                       <div className="flex flex-col items-center">
                         <ApperIcon name="UserX" size={48} className="text-surface-400 mb-3" />
                         <p>No contacts found. Add your first contact to get started.</p>
