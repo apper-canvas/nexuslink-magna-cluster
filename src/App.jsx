@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Deals from './pages/Deals';
 import Contacts from './pages/Contacts';
 import Tasks from './pages/Tasks';
+import Companies from './pages/Companies';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -64,6 +65,7 @@ function App() {
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/deals" element={<Deals />} />
           <Route path="/tasks" element={<Tasks />} />
+          <Route path="/companies" element={<Companies />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

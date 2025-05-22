@@ -53,6 +53,15 @@ const Home = () => {
   const recentActivities = [
     { 
       id: 1, 
+            <li>
+              <NavLink 
+                to="/companies" 
+                className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}
+              >
+                <ApperIcon name="Building2" className="w-5 h-5" />
+                <span>Companies</span>
+              </NavLink>
+            </li>
       type: 'call', 
       title: 'Call with John Smith', 
       time: '2 hours ago',
