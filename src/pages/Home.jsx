@@ -159,6 +159,19 @@ const Home = () => {
               <span className="hidden sm:inline">Reports</span>
             </span>
           </button>
+          
+          <button
+            onClick={() => handleTabChange('companies')}
+            className={`btn ${
+              activeTab === 'companies'
+                ? 'btn-primary'
+                : 'btn-outline'
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <ApperIcon name="Building2" size={16} />
+              <span className="hidden sm:inline">Companies</span>
+          </button>
         </div>
       </div>
       
@@ -287,6 +300,22 @@ const Home = () => {
           <div className="card p-6">
             <h1 className="text-2xl font-bold mb-6">Reports & Analytics</h1>
             <p className="text-surface-500">Reports module will be available in the next update.</p>
+          </div>
+        )}
+        
+        {activeTab === 'companies' && (
+          <div className="card p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold">Company Directory</h1>
+              <Link 
+                to="/companies" 
+                className="btn btn-primary"
+              >
+                Go to Companies
+              </Link>
+            </div>
+            <p className="text-surface-500">Manage company profiles, track associated contacts, and organize
+            deals by organization. Click the button above to access the full company management module.</p>
           </div>
         )}
       </div>
