@@ -171,6 +171,7 @@ const Home = () => {
             <span className="flex items-center gap-2">
               <ApperIcon name="Building2" size={16} />
               <span className="hidden sm:inline">Companies</span>
+            </span>
           </button>
         </div>
       </div>
