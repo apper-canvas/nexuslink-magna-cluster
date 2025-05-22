@@ -4,6 +4,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import ApperIcon from './components/ApperIcon';
 import Home from './pages/Home';
+import Deals from './pages/Deals';
 import Contacts from './pages/Contacts';
 import NotFound from './pages/NotFound';
 
@@ -60,6 +61,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/contacts" element={<Contacts />} />
+          <Route path="/deals" element={<Deals />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

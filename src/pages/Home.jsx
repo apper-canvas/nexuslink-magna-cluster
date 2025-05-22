@@ -254,8 +254,16 @@ const Home = () => {
         
         {activeTab === 'deals' && (
           <div className="card p-6">
-            <h1 className="text-2xl font-bold mb-6">Deals Pipeline</h1>
-            <p className="text-surface-500">Deals pipeline module will be available in the next update.</p>
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold">Deals Pipeline</h1>
+              <Link 
+                to="/deals" 
+                className="btn btn-primary"
+              >
+                Go to Deals
+              </Link>
+            </div>
+            <p className="text-surface-500">Track your sales pipeline, manage opportunities, and monitor deal progress from lead to close. Click the button above to access the full deals management module.</p>
           </div>
         )}
         
