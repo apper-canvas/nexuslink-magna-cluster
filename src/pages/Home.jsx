@@ -147,7 +147,7 @@ const Home = () => {
             </span>
           </button>
         </div>
-
+      </div>
       
       {/* Page Content */}
         {/* Loading and Error States */}
