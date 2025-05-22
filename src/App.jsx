@@ -22,19 +22,29 @@ export const AuthContext = createContext(null);
 function App() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem('darkMode') === 'true' || 
-    window.matchMedia('(prefers-color-scheme: dark)').matches
-  );
   const [isInitialized, setIsInitialized] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem('darkMode') === 'true' || window.matchMedia('(prefers-color-scheme: dark)').matches
+  );
   
   // Get authentication status with proper error handling
   const userState = useSelector((state) => state.user);
   const isAuthenticated = userState?.isAuthenticated || false;
-  
+
+  // Toggle dark mode function
+  const toggleDarkMode = () => setDarkMode(prev => !prev);
+
   useEffect(() => {
+    // Update document class based on dark mode state
     if (darkMode) {
       document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    // Save preference to localStorage
+    localStorage.setItem('darkMode', darkMode);
+  }, [darkMode]);
+
   // Initialize ApperUI once when the app loads
   useEffect(() => {
     const { ApperClient, ApperUI } = window.ApperSDK;
@@ -104,12 +114,8 @@ function App() {
         console.error("Authentication failed:", error);
       }
     });
-  }, []);
+  }, [navigate, dispatch]);
   
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('darkMode', darkMode);
   // Authentication methods to share via context
   const authMethods = {
     isInitialized,
@@ -136,8 +142,8 @@ function App() {
       </div>
     </div>;
   }
-  
-  }, [darkMode]);
+
+  return (
     <AuthContext.Provider value={authMethods}>
       <div className="flex flex-col min-h-screen">
         {/* Header */}
@@ -223,12 +229,6 @@ function App() {
         />
       </div>
     </AuthContext.Provider>
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme={darkMode ? "dark" : "light"}
-      />
-    </div>
   );
 }
 
