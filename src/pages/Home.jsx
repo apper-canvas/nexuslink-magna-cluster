@@ -269,8 +269,17 @@ const Home = () => {
         
         {activeTab === 'tasks' && (
           <div className="card p-6">
-            <h1 className="text-2xl font-bold mb-6">Tasks & Reminders</h1>
-            <p className="text-surface-500">Tasks management module will be available in the next update.</p>
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold">Tasks & Reminders</h1>
+              <Link 
+                to="/tasks" 
+                className="btn btn-primary"
+              >
+                Go to Tasks
+              </Link>
+            </div>
+            <p className="text-surface-500">Organize your work, set deadlines, and never miss important follow-ups. 
+            Click the button above to access the full task management module.</p>
           </div>
         )}
         

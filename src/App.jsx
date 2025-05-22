@@ -6,6 +6,7 @@ import ApperIcon from './components/ApperIcon';
 import Home from './pages/Home';
 import Deals from './pages/Deals';
 import Contacts from './pages/Contacts';
+import Tasks from './pages/Tasks';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -62,6 +63,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/deals" element={<Deals />} />
+          <Route path="/tasks" element={<Tasks />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
