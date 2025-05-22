@@ -178,6 +178,7 @@ function App() {
                 )}
               </motion.button>
             </div>
+          </div>
         </header>
         
         {/* Main Content */}
