@@ -8,7 +8,7 @@ import { getContacts, createContact, updateContact, deleteContact } from '../ser
 
 const Contacts = () => {
   const [contacts, setContacts] = useState([]);
-  const [filteredContacts, setFilteredContacts] = useState([]);
+  const [filteredContacts, setFilteredContacts] = useState([]); 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,6 +35,7 @@ const Contacts = () => {
         };
         const data = await getContacts(filters);
         setContacts(data);
+        setFilteredContacts(data || []);
       } catch (err) {
         setError('Failed to fetch contacts. Please try again later.');
         toast.error('Error loading contacts');
@@ -43,16 +44,16 @@ const Contacts = () => {
       }
     };
     fetchContacts();
-  }, []);
+  }, [searchTerm, filterType, filterStatus]);
   
   // Apply filters and search
   useEffect(() => {
-    let results = [...contacts];
+    let results = Array.isArray(contacts) ? [...contacts] : [];
     
     // Apply search
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      results = results.filter(contact => 
+      results = results.filter(contact => contact && (
         contact?.firstName?.toLowerCase().includes(term) ||
         contact?.lastName?.toLowerCase().includes(term) ||
         contact?.email?.toLowerCase().includes(term) ||
@@ -61,13 +62,13 @@ const Contacts = () => {
     }
     
     // Apply type filter
-    if (filterType !== 'all') {
-      results = results.filter(contact => contact.type === filterType);
+    if (filterType !== 'all' && results.length > 0) {
+      results = results.filter(contact => contact?.type === filterType);
     }
     
     // Apply status filter
-    if (filterStatus !== 'all') {
-      results = results.filter(contact => contact.status === filterStatus);
+    if (filterStatus !== 'all' && results.length > 0) {
+      results = results.filter(contact => contact?.status === filterStatus);
     }
     
     setFilteredContacts(results);
@@ -75,8 +76,8 @@ const Contacts = () => {
   }, [contacts, searchTerm, filterType, filterStatus]);
   
   // Pagination logic
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const indexOfLastItem = currentPage * itemsPerPage; 
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage; 
   const currentItems = filteredContacts.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredContacts.length / itemsPerPage);
   
@@ -302,8 +303,8 @@ const Contacts = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 hidden md:table-cell">{contact.email}</td>
-                    <td className="px-4 py-3 hidden md:table-cell">{contact.company || '-'}</td>
+                    <td className="px-4 py-3 hidden md:table-cell">{contact?.email}</td>
+                    <td className="px-4 py-3 hidden md:table-cell">{contact?.company || '-'}</td>
                     <td className="px-4 py-3 hidden lg:table-cell">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize
                         ${contact.type === 'lead' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' : ''}
@@ -349,7 +350,7 @@ const Contacts = () => {
                     </td>
                   </tr>
                 ))
-              ) : (
+                    {contacts?.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="px-4 py-8 text-center text-surface-500">
                     {contacts.length === 0 ? (
@@ -371,7 +372,7 @@ const Contacts = () => {
         </div>
         
         {/* Pagination */}
-        {filteredContacts.length > itemsPerPage && (
+        {filteredContacts?.length > itemsPerPage && (
           <div className="flex items-center justify-between border-t border-surface-200 dark:border-surface-700 px-4 py-3">
             <div className="text-sm text-surface-500">
               Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredContacts.length)} of {filteredContacts.length} contacts
@@ -511,7 +512,7 @@ const Contacts = () => {
                   <p className="text-surface-600 dark:text-surface-300 mb-2">
                     Are you sure you want to delete this contact? This action cannot be undone.
                   </p>
-                  <p className="font-medium">{currentContact.firstName} {currentContact.lastName}</p>
+                  <p className="font-medium">{currentContact?.firstName} {currentContact?.lastName}</p>
                 </div>
                 
                 <div className="flex justify-end gap-3">
