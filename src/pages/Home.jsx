@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ApperIcon from '../components/ApperIcon';
 import MainFeature from '../components/MainFeature';
@@ -235,9 +236,19 @@ const Home = () => {
         )}
         
         {activeTab === 'contacts' && (
-          <div className="card p-6">
-            <h1 className="text-2xl font-bold mb-6">Contacts</h1>
-            <p className="text-surface-500">Contact management module will be available in the next update.</p>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl md:text-3xl font-bold">Contacts</h1>
+              <Link 
+                to="/contacts" 
+                className="btn btn-primary"
+              >
+                Go to Contacts
+              </Link>
+            </div>
+            <div className="card p-6">
+              <p className="text-surface-500 mb-4">Manage your contacts, leads, and customers all in one place. Click the button above to access the full contacts management module.</p>
+            </div>
           </div>
         )}
         

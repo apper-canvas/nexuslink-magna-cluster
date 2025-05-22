@@ -4,6 +4,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import ApperIcon from './components/ApperIcon';
 import Home from './pages/Home';
+import Contacts from './pages/Contacts';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -58,6 +59,7 @@ function App() {
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/contacts" element={<Contacts />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
