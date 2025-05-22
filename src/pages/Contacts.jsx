@@ -53,10 +53,10 @@ const Contacts = () => {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       results = results.filter(contact => 
-        contact.firstName.toLowerCase().includes(term) ||
-        contact.lastName.toLowerCase().includes(term) ||
-        contact.email.toLowerCase().includes(term) ||
-        contact.company?.toLowerCase().includes(term)
+        contact?.firstName?.toLowerCase().includes(term) ||
+        contact?.lastName?.toLowerCase().includes(term) ||
+        contact?.email?.toLowerCase().includes(term) ||
+        contact?.company?.toLowerCase()?.includes(term)
       );
     }
     
@@ -297,8 +297,8 @@ const Contacts = () => {
                         <div className="w-8 h-8 rounded-full bg-primary-light/10 flex items-center justify-center text-primary">
                           <ApperIcon name="User" size={16} /></div>
                         <div>
-                          <p className="font-medium">{contact.firstName} {contact.lastName}</p>
-                          <p className="text-sm text-surface-500 md:hidden">{contact.email}</p>
+                          <p className="font-medium">{contact?.firstName || ''} {contact?.lastName || ''}</p>
+                          <p className="text-sm text-surface-500 md:hidden">{contact?.email || ''}</p>
                         </div>
                       </div>
                     </td>
@@ -570,23 +570,23 @@ const Contacts = () => {
                       </div>
                       <div>
                         <p className="text-sm text-surface-500">Email</p>
-                        <p className="font-medium">{currentContact.email}</p>
+                        <p className="font-medium">{currentContact?.email || 'Not provided'}</p>
                       </div>
                       <div>
                         <p className="text-sm text-surface-500">Phone</p>
-                        <p className="font-medium">{currentContact.phone || 'Not provided'}</p>
+                        <p className="font-medium">{currentContact?.phone || 'Not provided'}</p>
                       </div>
                       <div>
                         <p className="text-sm text-surface-500">Type</p>
-                        <p className="font-medium capitalize">{currentContact.type}</p>
+                        <p className="font-medium capitalize">{currentContact?.type || 'Not specified'}</p>
                       </div>
                       <div>
                         <p className="text-sm text-surface-500">Status</p>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize
-                          ${currentContact.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : ''}
-                          ${currentContact.status === 'inactive' ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300' : ''}
+                          ${currentContact?.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : ''}
+                          ${currentContact?.status === 'inactive' ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300' : ''}
                         `}>
-                          {currentContact.status}
+                          {currentContact?.status || 'Not specified'}
                         </span>
                       </div>
                     </div>
@@ -597,19 +597,19 @@ const Contacts = () => {
                     <div className="space-y-3">
                       <div>
                         <p className="text-sm text-surface-500">Company</p>
-                        <p className="font-medium">{currentContact.company || 'Not provided'}</p>
+                        <p className="font-medium">{currentContact?.company || 'Not provided'}</p>
                       </div>
                       <div>
                         <p className="text-sm text-surface-500">Job Title</p>
-                        <p className="font-medium">{currentContact.title || 'Not provided'}</p>
+                        <p className="font-medium">{currentContact?.title || 'Not provided'}</p>
                       </div>
                       <div>
                         <p className="text-sm text-surface-500">Last Contact</p>
-                        <p className="font-medium">{format(currentContact.lastContact, 'MMMM d, yyyy')}</p>
+                        <p className="font-medium">{currentContact?.lastContact ? format(new Date(currentContact.lastContact), 'MMMM d, yyyy') : 'Not available'}</p>
                       </div>
                       <div>
                         <p className="text-sm text-surface-500">Added On</p>
-                        <p className="font-medium">{format(currentContact.createdAt, 'MMMM d, yyyy')}</p>
+                        <p className="font-medium">{currentContact?.CreatedOn ? format(new Date(currentContact.CreatedOn), 'MMMM d, yyyy') : 'Not available'}</p>
                       </div>
                     </div>
                   </div>
@@ -618,7 +618,7 @@ const Contacts = () => {
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold mb-2">Notes</h3>
                   <div className="p-4 bg-surface-50 dark:bg-surface-700 rounded-lg">
-                    <p>{currentContact.notes || 'No notes available'}</p>
+                    <p>{currentContact?.notes || 'No notes available'}</p>
                   </div>
                 </div>
                 
