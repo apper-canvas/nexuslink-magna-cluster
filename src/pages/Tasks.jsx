@@ -4,62 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import ApperIcon from '../components/ApperIcon';
 import TaskForm from '../components/TaskForm';
-
-// Sample task data
-const initialTasks = [
-  {
-    id: 1,
-    title: 'Follow up with Acme Corp',
-    description: 'Send product brochure and pricing information',
-    dueDate: new Date('2023-11-15'),
-    priority: 'high',
-    category: 'follow-up',
-    status: 'completed',
-    createdAt: new Date('2023-11-10')
-  },
-  {
-    id: 2,
-    title: 'Prepare client presentation',
-    description: 'Create slides for the quarterly business review',
-    dueDate: new Date('2023-11-20'),
-    priority: 'urgent',
-    category: 'meeting',
-    status: 'in-progress',
-    createdAt: new Date('2023-11-12')
-  },
-  {
-    id: 3,
-    title: 'Call John regarding contract',
-    description: 'Discuss the terms of the new service agreement',
-    dueDate: new Date('2023-11-18'),
-    priority: 'medium',
-    category: 'call',
-    status: 'pending',
-    createdAt: new Date('2023-11-11')
-  },
-  {
-    id: 4,
-    title: 'Send proposal to Tech Solutions',
-    description: 'Finalize and send the project proposal',
-    dueDate: new Date('2023-11-25'),
-    priority: 'medium',
-    category: 'email',
-    status: 'pending',
-    createdAt: new Date('2023-11-14')
-  },
-  {
-    id: 5,
-    title: 'Review marketing campaign results',
-    description: 'Analyze the performance metrics from the latest campaign',
-    dueDate: new Date('2023-11-30'),
-    priority: 'low',
-    category: 'general',
-    status: 'pending',
-    createdAt: new Date('2023-11-15')
-  }
-];
+import { getTasks, createTask, updateTask, deleteTask, updateTaskStatus } from '../services/taskService';
 
 const Tasks = () => {
+  const [tasks, setTasks] = useState([]);
+  const [filteredTasks, setFilteredTasks] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [isAddingTask, setIsAddingTask] = useState(false);
@@ -68,37 +19,28 @@ const Tasks = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   
-  // Initialize with sample data
+  // Fetch tasks from API
   useEffect(() => {
-    // In a real app, you would fetch from an API
-    const today = new Date();
-    
-    // Add current date tasks for demo
-    const updatedTasks = [
-      ...initialTasks,
-      {
-        id: 6,
-        title: 'Complete project documentation',
-        description: 'Finalize all technical documentation for the client',
-        dueDate: new Date(today),
-        priority: 'high',
-        category: 'general',
-        status: 'in-progress',
-        createdAt: new Date(today.setDate(today.getDate() - 1))
-      },
-      {
-        id: 7,
-        title: 'Schedule team meeting',
-        description: 'Coordinate with team members for weekly sync',
-        dueDate: new Date(today.setDate(today.getDate() + 2)),
-        priority: 'medium',
-        category: 'meeting',
-        status: 'pending',
-        createdAt: new Date(today)
+    const fetchTasks = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const filters = {
+          searchTerm,
+          status: statusFilter !== 'all' ? statusFilter : undefined,
+          priority: priorityFilter !== 'all' ? priorityFilter : undefined
+        };
+        const data = await getTasks(filters);
+        setTasks(data);
+        setFilteredTasks(data);
+      } catch (err) {
+        setError('Failed to fetch tasks. Please try again later.');
+        toast.error('Error loading tasks');
+      } finally {
+        setIsLoading(false);
       }
-    ];
-    
-    setTasks(updatedTasks);
+    };
+    fetchTasks();
   }, []);
   
   // Apply filters whenever tasks, search term, or filters change
@@ -129,39 +71,107 @@ const Tasks = () => {
     setFilteredTasks(result);
   }, [tasks, searchTerm, statusFilter, priorityFilter]);
   
-  const handleAddTask = (taskData) => {
-    const newTask = {
-      ...taskData,
-      id: Math.max(...tasks.map(t => t.id), 0) + 1,
-      createdAt: new Date()
-    };
-    
-    setTasks(prev => [...prev, newTask]);
-    setIsAddingTask(false);
-  };
-  
-  const handleUpdateTask = (taskData) => {
-    setTasks(prev => prev.map(task => 
-      task.id === taskData.id ? { ...task, ...taskData } : task
-    ));
-    setIsEditingTask(null);
-  };
-  
-  const handleDeleteTask = (id) => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      setTasks(prev => prev.filter(task => task.id !== id));
-      toast.success('Task deleted successfully');
+  const handleAddTask = async (taskData) => {
+    try {
+      setIsLoading(true);
+      
+      // Prepare task data for API
+      const apiTaskData = {
+        Name: taskData.title, // Name field is required
+        title: taskData.title,
+        description: taskData.description,
+        dueDate: taskData.dueDate instanceof Date ? 
+          taskData.dueDate.toISOString().split('T')[0] : 
+          taskData.dueDate,
+        priority: taskData.priority,
+        category: taskData.category,
+        status: taskData.status
+      };
+      
+      // Call API to create task
+      const newTask = await createTask(apiTaskData);
+      
+      // Update state with new task
+      setTasks(prev => [...prev, newTask]);
+      setIsAddingTask(false);
+      
+      toast.success('Task created successfully');
+    } catch (error) {
+      console.error('Error creating task:', error);
+      toast.error('Failed to create task');
+    } finally {
+      setIsLoading(false);
     }
   };
   
-  const handleToggleStatus = (id, currentStatus) => {
+  const handleUpdateTask = async (taskData) => {
+    try {
+      setIsLoading(true);
+      
+      // Prepare task data for API
+      const apiTaskData = {
+        Name: taskData.title,
+        title: taskData.title,
+        description: taskData.description,
+        dueDate: taskData.dueDate instanceof Date ? 
+          taskData.dueDate.toISOString().split('T')[0] : 
+          taskData.dueDate,
+        priority: taskData.priority,
+        category: taskData.category,
+        status: taskData.status
+      };
+      
+      // Call API to update task
+      const updatedTask = await updateTask(isEditingTask.Id, apiTaskData);
+      
+      // Update state with updated task
+      setTasks(prev => prev.map(task => task.Id === isEditingTask.Id ? updatedTask : task));
+      setIsEditingTask(null);
+      
+      toast.success('Task updated successfully');
+    } catch (error) {
+      console.error('Error updating task:', error);
+      toast.error('Failed to update task');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleDeleteTask = async (id) => {
+    if (window.confirm('Are you sure you want to delete this task?')) {
+      try {
+        setIsLoading(true);
+        await deleteTask(id);
+        setTasks(prev => prev.filter(task => task.Id !== id));
+        toast.success('Task deleted successfully');
+      } catch (error) {
+        console.error('Error deleting task:', error);
+        toast.error('Failed to delete task');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+  
+  const handleToggleStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
     
-    setTasks(prev => prev.map(task => 
-      task.id === id ? { ...task, status: newStatus } : task
-    ));
-    
-    toast.info(`Task marked as ${newStatus}`);
+    try {
+      setIsLoading(true);
+      
+      // Call API to update task status
+      const updatedTask = await updateTaskStatus(id, newStatus);
+      
+      // Update state with updated task
+      setTasks(prev => prev.map(task => task.Id === id ? updatedTask : task));
+      
+      toast.info(`Task marked as ${newStatus}`);
+    } catch (error) {
+      console.error('Error updating task status:', error);
+      toast.error('Failed to update task status');
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const formatDate = (date) => {
@@ -220,6 +230,16 @@ const Tasks = () => {
           </button>
         </div>
       </div>
+      
+      {/* Loading and Error States */}
+      {isLoading && (
+        <div className="flex justify-center my-6">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      )}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">{error}</div>
+      )}
       
       {/* Filters and Search */}
       <div className="card mb-6">
@@ -303,7 +323,7 @@ const Tasks = () => {
               ) : (
                 filteredTasks.map(task => (
                   <tr key={task.id} className="hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap"> 
                       <button 
                         onClick={() => handleToggleStatus(task.id, task.status)}
                         className="flex items-center justify-center"

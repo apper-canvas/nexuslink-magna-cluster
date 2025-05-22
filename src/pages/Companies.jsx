@@ -4,104 +4,13 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import ApperIcon from '../components/ApperIcon';
 import CompanyForm from '../components/CompanyForm';
-
-const MOCK_COMPANIES = [
-  {
-    id: '1',
-    name: 'Acme Corporation',
-    industry: 'Technology',
-    size: '201-500',
-    location: 'San Francisco, CA',
-    website: 'https://acme.example.com',
-    description: 'A leading technology company specializing in innovative solutions for enterprise customers.',
-    contacts: ['2', '5'],
-    deals: ['1', '3'],
-    createdAt: '2023-01-15T10:30:00Z',
-    updatedAt: '2023-06-22T14:45:00Z'
-  },
-  {
-    id: '2',
-    name: 'Globex Industries',
-    industry: 'Manufacturing',
-    size: '501+',
-    location: 'Chicago, IL',
-    website: 'https://globex.example.com',
-    description: 'A global manufacturing leader with operations in 15 countries.',
-    contacts: ['3'],
-    deals: ['2'],
-    createdAt: '2023-02-10T09:15:00Z',
-    updatedAt: '2023-07-05T11:20:00Z'
-  },
-  {
-    id: '3',
-    name: 'Initech Software',
-    industry: 'Software',
-    size: '51-200',
-    location: 'Austin, TX',
-    website: 'https://initech.example.com',
-    description: 'Enterprise software solutions for finance and accounting departments.',
-    contacts: ['1', '4'],
-    deals: ['4'],
-    createdAt: '2023-03-05T16:45:00Z',
-    updatedAt: '2023-08-18T13:10:00Z'
-  },
-  {
-    id: '4',
-    name: 'Umbrella Corp',
-    industry: 'Healthcare',
-    size: '201-500',
-    location: 'Boston, MA',
-    website: 'https://umbrella.example.com',
-    description: 'Pharmaceutical research and development with a focus on innovative treatments.',
-    contacts: ['6'],
-    deals: [],
-    createdAt: '2023-04-20T11:30:00Z',
-    updatedAt: '2023-05-15T09:25:00Z'
-  },
-  {
-    id: '5',
-    name: 'Massive Dynamics',
-    industry: 'Technology',
-    size: '501+',
-    location: 'New York, NY',
-    website: 'https://massive.example.com',
-    description: 'Cutting-edge technology solutions spanning multiple sectors including aerospace and defense.',
-    contacts: [],
-    deals: ['5'],
-    createdAt: '2023-05-12T08:20:00Z',
-    updatedAt: '2023-09-01T15:40:00Z'
-  },
-  {
-    id: '6',
-    name: 'Stark Industries',
-    industry: 'Energy',
-    size: '201-500',
-    location: 'Los Angeles, CA',
-    website: 'https://stark.example.com',
-    description: 'Clean energy solutions and advanced engineering services.',
-    contacts: ['7'],
-    deals: [],
-    createdAt: '2023-06-30T14:15:00Z',
-    updatedAt: '2023-10-10T12:05:00Z'
-  },
-  {
-    id: '7',
-    name: 'Wayne Enterprises',
-    industry: 'Conglomerate',
-    size: '501+',
-    location: 'Gotham City, NJ',
-    website: 'https://wayne.example.com',
-    description: 'A diversified multinational with interests in technology, real estate, and philanthropic ventures.',
-    contacts: [],
-    deals: [],
-    createdAt: '2023-07-25T10:00:00Z',
-    updatedAt: '2023-11-05T16:30:00Z'
-  }
-];
+import { getCompanies, createCompany, updateCompany, deleteCompany } from '../services/companyService';
 
 const Companies = () => {
   const [companies, setCompanies] = useState([]);
   const [filteredCompanies, setFilteredCompanies] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [currentCompany, setCurrentCompany] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -110,13 +19,28 @@ const Companies = () => {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [selectedCompany, setSelectedCompany] = useState(null);
 
-  // Initialize companies from mock data
+  // Fetch companies from API
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setCompanies(MOCK_COMPANIES);
-      setFilteredCompanies(MOCK_COMPANIES);
-    }, 300);
+    const fetchCompanies = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const filters = {
+          searchTerm,
+          industry: industryFilter,
+          size: sizeFilter
+        };
+        const data = await getCompanies(filters);
+        setCompanies(data);
+        setFilteredCompanies(data);
+      } catch (err) {
+        setError('Failed to fetch companies. Please try again later.');
+        toast.error('Error loading companies');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCompanies();
   }, []);
 
   // Filter companies when search term, industry filter, or size filter changes
@@ -159,36 +83,95 @@ const Companies = () => {
     setIsFormOpen(true);
   };
 
-  const handleSubmitCompany = (companyData) => {
+  const handleSubmitCompany = async (companyData) => {
     if (currentCompany) {
-      // Update existing company
-      const updatedCompanies = companies.map(company => 
-        company.id === companyData.id ? companyData : company
-      );
-      setCompanies(updatedCompanies);
-      toast.success(`${companyData.name} updated successfully`);
+      // Update existing company - API call
+      try {
+        setIsLoading(true);
+        
+        // Prepare company data for API - Include only updateable fields
+        const apiCompanyData = {
+          Name: companyData.name,
+          industry: companyData.industry,
+          size: companyData.size,
+          location: companyData.location,
+          website: companyData.website,
+          description: companyData.description,
+        };
+        
+        const updatedCompany = await updateCompany(currentCompany.Id, apiCompanyData);
+        
+        // Update state with new company data
+        setCompanies(prevCompanies => 
+          prevCompanies.map(company => company.Id === currentCompany.Id ? updatedCompany : company)
+        );
+        
+        toast.success(`${companyData.name} updated successfully`);
+      } catch (error) {
+        console.error('Error updating company:', error);
+        toast.error('Failed to update company');
+      } finally {
+        setIsLoading(false);
+      }
     } else {
-      // Add new company
-      setCompanies([...companies, companyData]);
-      toast.success(`${companyData.name} added successfully`);
+      // Add new company - API call
+      try {
+        setIsLoading(true);
+        
+        // Prepare company data for API - Include only updateable fields
+        const apiCompanyData = {
+          Name: companyData.name,
+          industry: companyData.industry,
+          size: companyData.size,
+          location: companyData.location,
+          website: companyData.website,
+          description: companyData.description,
+        };
+        
+        const newCompany = await createCompany(apiCompanyData);
+        
+        // Add new company to state
+        setCompanies(prevCompanies => [...prevCompanies, newCompany]);
+        
+        toast.success(`${companyData.name} added successfully`);
+      } catch (error) {
+        console.error('Error creating company:', error);
+        toast.error('Failed to create company');
+      } finally {
+        setIsLoading(false);
+      }
     }
+    setIsFormOpen(false);
   };
 
   const handleDeleteCompany = (company) => {
     setConfirmDelete(company);
   };
 
-  const confirmDeleteCompany = () => {
+  const confirmDeleteCompany = async () => {
     if (!confirmDelete) return;
     
-    const updatedCompanies = companies.filter(company => company.id !== confirmDelete.id);
-    setCompanies(updatedCompanies);
-    toast.success(`${confirmDelete.name} deleted successfully`);
-    setConfirmDelete(null);
-    
-    // If the deleted company is the currently selected one, clear the selection
-    if (selectedCompany && selectedCompany.id === confirmDelete.id) {
-      setSelectedCompany(null);
+    try {
+      setIsLoading(true);
+      
+      // Delete company - API call
+      await deleteCompany(confirmDelete.Id);
+      
+      // Update state by removing the deleted company
+      setCompanies(prevCompanies => prevCompanies.filter(company => company.Id !== confirmDelete.Id));
+      
+      toast.success(`${confirmDelete.Name} deleted successfully`);
+      
+      // If the deleted company is the currently selected one, clear the selection
+      if (selectedCompany && selectedCompany.Id === confirmDelete.Id) {
+        setSelectedCompany(null);
+      }
+    } catch (error) {
+      console.error('Error deleting company:', error);
+      toast.error('Failed to delete company');
+    } finally {
+      setIsLoading(false);
+      setConfirmDelete(null);
     }
   };
 
@@ -216,6 +199,16 @@ const Companies = () => {
           Add Company
         </motion.button>
       </div>
+
+      {/* Loading and Error States */}
+      {isLoading && (
+        <div className="flex justify-center my-6">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      )}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">{error}</div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column - Companies list */}
@@ -290,9 +283,9 @@ const Companies = () => {
                   <tbody>
                     {filteredCompanies.map(company => (
                       <tr 
-                        key={company.id}
-                        className={`border-b border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 cursor-pointer ${selectedCompany?.id === company.id ? 'bg-primary-light/10' : ''}`}
-                        onClick={() => handleViewCompany(company)}
+                        key={company.Id}
+                        className={`border-b border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 cursor-pointer ${selectedCompany?.Id === company.Id ? 'bg-primary-light/10' : ''}`}
+                        onClick={() => handleViewCompany(company)} 
                       >
                         <td className="py-3 px-4 font-medium">{company.name}</td>
                         <td className="py-3 px-4 text-surface-600 dark:text-surface-400">{company.industry}</td>
@@ -328,7 +321,7 @@ const Companies = () => {
           {selectedCompany ? (
             <div className="card">
               <div className="flex justify-between items-start mb-4">
-                <h2 className="text-xl font-semibold text-surface-900 dark:text-white">{selectedCompany.name}</h2>
+                <h2 className="text-xl font-semibold text-surface-900 dark:text-white">{selectedCompany.Name}</h2>
                 <div className="flex gap-2">
                   <button 
                     onClick={() => handleEditCompany(selectedCompany)}
@@ -378,14 +371,14 @@ const Companies = () => {
                 
                 <div className="pt-2">
                   <h3 className="text-sm font-medium text-surface-500 dark:text-surface-400 mb-2">Associated Deals</h3>
-                  {selectedCompany.deals.length > 0 ? (
+                  {selectedCompany.deals && selectedCompany.deals.length > 0 ? (
                     <div className="space-y-2">
                       {selectedCompany.deals.map(dealId => (
                         <Link 
                           key={dealId}
                           to={`/deals?id=${dealId}`}
                           className="block p-2 rounded-lg bg-surface-100 dark:bg-surface-800 hover:bg-surface-200 dark:hover:bg-surface-700"
-                        >
+                        > 
                           <div className="flex items-center gap-2">
                             <ApperIcon name="BadgeDollarSign" size={16} className="text-accent" />
                             <span>Deal #{dealId}</span>
@@ -400,7 +393,7 @@ const Companies = () => {
                 
                 <div className="pt-2">
                   <h3 className="text-sm font-medium text-surface-500 dark:text-surface-400 mb-2">Associated Contacts</h3>
-                  {selectedCompany.contacts.length > 0 ? (
+                  {selectedCompany.contacts && selectedCompany.contacts.length > 0 ? (
                     <div className="space-y-2">
                       {selectedCompany.contacts.map(contactId => (
                         <Link 

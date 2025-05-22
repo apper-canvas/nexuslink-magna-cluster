@@ -67,18 +67,17 @@ const TaskForm = ({ onSubmit, onCancel, initialData = null }) => {
   
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       // Convert date string to Date object for processing
       const processedData = {
         ...formData,
         dueDate: new Date(formData.dueDate)
       };
-      
+
       onSubmit(processedData);
-      
-      // Show success toast
-      toast.success(initialData ? 'Task updated successfully' : 'Task created successfully');
+
+      // Success toast is handled in the parent component when the service call succeeds
     } else {
       toast.error('Please fix the errors in the form');
     }

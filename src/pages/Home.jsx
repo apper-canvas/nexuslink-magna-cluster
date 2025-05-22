@@ -1,89 +1,62 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ApperIcon from '../components/ApperIcon';
 import MainFeature from '../components/MainFeature';
+import { getRecentActivities, getActivityIcon, formatActivityTime } from '../services/activityService';
+import { getDeals } from '../services/dealService';
+import { getContacts } from '../services/contactService';
+import { getTasks } from '../services/taskService';
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [stats, setStats] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
   
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     toast.info(`Switched to ${tab.charAt(0).toUpperCase() + tab.slice(1)} view`);
   };
 
-  // Dashboard overview stats
-  const stats = [
-    { 
-      id: 1, 
-      title: 'Total Contacts', 
-      value: 342, 
-      icon: 'Users', 
-      change: '+12%', 
-      color: 'bg-blue-500' 
-    },
-    { 
-      id: 2, 
-      title: 'Active Deals', 
-      value: 28, 
-      icon: 'LineChart', 
-      change: '+5%', 
-      color: 'bg-green-500' 
-    },
-    { 
-      id: 3, 
-      title: 'Tasks Due', 
-      value: 17, 
-      icon: 'CheckSquare', 
-      change: '-3%', 
-      color: 'bg-yellow-500' 
-    },
-    { 
-      id: 4, 
-      title: 'Revenue', 
-      value: '$86,240', 
-      icon: 'DollarSign', 
-      change: '+18%', 
-      color: 'bg-purple-500' 
-    },
-  ];
-
-  // Activities list for dashboard
-  const recentActivities = [
-    { 
-      id: 1,
-      type: 'call', 
-      title: 'Call with John Smith', 
-      time: '2 hours ago',
-      contact: 'John Smith',
-      icon: 'Phone'
-    },
-    { 
-      id: 2, 
-      type: 'email', 
-      title: 'Email to Sarah Johnson', 
-      time: '4 hours ago',
-      contact: 'Sarah Johnson',
-      icon: 'Mail' 
-    },
-    { 
-      id: 3, 
-      type: 'meeting', 
-      title: 'Meeting with Acme Corp', 
-      time: 'Yesterday',
-      contact: 'Acme Corp',
-      icon: 'CalendarClock' 
-    },
-    { 
-      id: 4, 
-      type: 'note', 
-      title: 'Added follow-up note', 
-      time: '2 days ago',
-      contact: 'Tech Solutions Inc.',
-      icon: 'FileText' 
-    },
-  ];
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Fetch recent activities
+        const activities = await getRecentActivities(4);
+        setRecentActivities(activities);
+        
+        // Fetch summary data for stats
+        const [contacts, deals, tasks] = await Promise.all([
+          getContacts(),
+          getDeals(),
+          getTasks()
+        ]);
+        
+        // Calculate stats
+        setStats([
+          { id: 1, title: 'Total Contacts', value: contacts.length, icon: 'Users', change: '+12%', color: 'bg-blue-500' },
+          { id: 2, title: 'Active Deals', value: deals.filter(d => d.stage !== 'closed').length, icon: 'LineChart', change: '+5%', color: 'bg-green-500' },
+          { id: 3, title: 'Tasks Due', value: tasks.filter(t => t.status !== 'completed').length, icon: 'CheckSquare', change: '-3%', color: 'bg-yellow-500' },
+          { id: 4, title: 'Revenue', value: `$${deals.reduce((sum, deal) => sum + parseFloat(deal.value?.replace(/[^0-9.-]+/g, "") || 0), 0).toLocaleString()}`, icon: 'DollarSign', change: '+18%', color: 'bg-purple-500' }
+        ]);
+      } catch (err) {
+        setError('Failed to fetch dashboard data.');
+        toast.error('Error loading dashboard data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    if (activeTab === 'dashboard') {
+      fetchDashboardData();
+    }
+  }, [activeTab]);
   
   return (
     <div className="container mx-auto px-4 py-6">
@@ -174,9 +147,18 @@ const Home = () => {
             </span>
           </button>
         </div>
-      </div>
+
       
       {/* Page Content */}
+        {/* Loading and Error States */}
+        {isLoading && (
+          <div className="flex justify-center my-6">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        )}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">{error}</div>
+        )}
       <div className="space-y-6">
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
@@ -229,9 +211,9 @@ const Home = () => {
                       className="flex items-start gap-3 p-3 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
                     >
                       <div className="p-2 rounded-full bg-primary-light/10 text-primary-light">
-                        <ApperIcon name={activity.icon} size={16} />
+                        <ApperIcon name={getActivityIcon(activity.type)} size={16} />
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0"> 
                         <p className="font-medium text-surface-900 dark:text-surface-100">{activity.title}</p>
                         <p className="text-sm text-surface-500">{activity.contact}</p>
                         <p className="text-xs text-surface-400 mt-1">{activity.time}</p>

@@ -4,84 +4,13 @@ import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import ApperIcon from '../components/ApperIcon';
 import ContactForm from '../components/ContactForm';
-
-// Mock data for contacts
-const initialContacts = [
-  {
-    id: 1,
-    firstName: 'John',
-    lastName: 'Smith',
-    email: 'john.smith@example.com',
-    phone: '(555) 123-4567',
-    company: 'Acme Corp',
-    title: 'Sales Manager',
-    type: 'customer',
-    status: 'active',
-    lastContact: new Date(2023, 10, 15),
-    notes: 'Met at the industry conference. Interested in our premium plan.',
-    createdAt: new Date(2023, 8, 10)
-  },
-  {
-    id: 2,
-    firstName: 'Sarah',
-    lastName: 'Johnson',
-    email: 'sarah.j@techsolutions.com',
-    phone: '(555) 987-6543',
-    company: 'Tech Solutions Inc.',
-    title: 'CTO',
-    type: 'partner',
-    status: 'active',
-    lastContact: new Date(2023, 11, 3),
-    notes: 'Potential integration partnership opportunity.',
-    createdAt: new Date(2023, 6, 22)
-  },
-  {
-    id: 3,
-    firstName: 'Michael',
-    lastName: 'Wong',
-    email: 'michael.wong@globalinc.com',
-    phone: '(555) 456-7890',
-    company: 'Global Inc.',
-    title: 'Purchasing Director',
-    type: 'lead',
-    status: 'active',
-    lastContact: new Date(2023, 10, 28),
-    notes: 'Needs a proposal by end of quarter.',
-    createdAt: new Date(2023, 9, 5)
-  },
-  {
-    id: 4,
-    firstName: 'Emma',
-    lastName: 'Davis',
-    email: 'emma.davis@innovate.co',
-    phone: '(555) 789-0123',
-    company: 'Innovate Co.',
-    title: 'Marketing Lead',
-    type: 'customer',
-    status: 'inactive',
-    lastContact: new Date(2023, 9, 12),
-    notes: 'Contract renewal coming up in 3 months.',
-    createdAt: new Date(2023, 5, 18)
-  },
-  {
-    id: 5,
-    firstName: 'Robert',
-    lastName: 'Chen',
-    email: 'robert.chen@futuretech.com',
-    phone: '(555) 234-5678',
-    company: 'Future Tech',
-    title: 'CEO',
-    type: 'lead',
-    status: 'active',
-    lastContact: new Date(2023, 11, 5),
-    notes: 'Introduced by Sarah Johnson. Very interested in our enterprise solution.',
-    createdAt: new Date(2023, 10, 1)
-  }
-];
+import { getContacts, createContact, updateContact, deleteContact } from '../services/contactService';
 
 const Contacts = () => {
-  const [contacts, setContacts] = useState(initialContacts);
+  const [contacts, setContacts] = useState([]);
   const [filteredContacts, setFilteredContacts] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -92,6 +21,29 @@ const Contacts = () => {
   const [currentContact, setCurrentContact] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  
+  // Fetch contacts from API
+  useEffect(() => {
+    const fetchContacts = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const filters = {
+          searchTerm,
+          type: filterType !== 'all' ? filterType : undefined,
+          status: filterStatus !== 'all' ? filterStatus : undefined,
+        };
+        const data = await getContacts(filters);
+        setContacts(data);
+      } catch (err) {
+        setError('Failed to fetch contacts. Please try again later.');
+        toast.error('Error loading contacts');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchContacts();
+  }, []);
   
   // Apply filters and search
   useEffect(() => {
@@ -170,34 +122,79 @@ const Contacts = () => {
   };
   
   // CRUD operations
-  const handleAddContact = (formData) => {
-    const newContact = {
-      ...formData,
-      id: contacts.length > 0 ? Math.max(...contacts.map(c => c.id)) + 1 : 1,
-      createdAt: new Date(),
-      lastContact: new Date()
-    };
-    
-    setContacts([...contacts, newContact]);
-    closeAllModals();
-    toast.success('Contact added successfully');
+  const handleAddContact = async (formData) => {
+    try {
+      setIsLoading(true);
+      
+      // Prepare contact data for API
+      const contactData = {
+        Name: `${formData.firstName} ${formData.lastName}`,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        title: formData.title,
+        type: formData.type,
+        status: formData.status,
+        notes: formData.notes,
+        // Format date for API - ISO format date string
+        lastContact: new Date().toISOString().split('T')[0]
+      };
+      
+      const newContact = await createContact(contactData);
+      setContacts(prevContacts => [...prevContacts, newContact]);
+      closeAllModals();
+      toast.success('Contact added successfully');
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      toast.error('Failed to add contact');
+    } finally {
+      setIsLoading(false);
+    }
   };
   
-  const handleEditContact = (formData) => {
-    const updatedContacts = contacts.map(contact => 
-      contact.id === currentContact.id ? { ...contact, ...formData } : contact
-    );
-    
-    setContacts(updatedContacts);
-    closeAllModals();
-    toast.success('Contact updated successfully');
+  const handleEditContact = async (formData) => {
+    try {
+      setIsLoading(true);
+      
+      // Prepare contact data for API
+      const contactData = {
+        Name: `${formData.firstName} ${formData.lastName}`,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        title: formData.title,
+        type: formData.type,
+        status: formData.status,
+        notes: formData.notes,
+      };
+      
+      const updatedContact = await updateContact(currentContact.Id, contactData);
+      setContacts(prevContacts => prevContacts.map(contact => contact.Id === currentContact.Id ? updatedContact : contact));
+      closeAllModals();
+      toast.success('Contact updated successfully');
+    } catch (error) {
+      console.error('Error updating contact:', error);
+      toast.error('Failed to update contact');
+    } finally {
+      setIsLoading(false);
+    }
   };
   
-  const handleDeleteContact = () => {
-    const updatedContacts = contacts.filter(contact => contact.id !== currentContact.id);
-    setContacts(updatedContacts);
-    closeAllModals();
-    toast.success('Contact deleted successfully');
+  const handleDeleteContact = async () => {
+    try {
+      setIsLoading(true);
+      await deleteContact(currentContact.Id);
+      setContacts(prevContacts => prevContacts.filter(contact => contact.Id !== currentContact.Id));
+      closeAllModals();
+      toast.success('Contact deleted successfully');
+    } catch (error) {
+      console.error('Error deleting contact:', error);
+      toast.error('Failed to delete contact');
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   // Pagination controls
@@ -221,6 +218,15 @@ const Contacts = () => {
         </div>
       </div>
       
+      {/* Loading and Error States */}
+      {isLoading && (
+        <div className="flex justify-center my-6">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      )}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">{error}</div>
+      )}
       {/* Filters & Search */}
       <div className="card mb-6">
         <div className="flex flex-col md:flex-row gap-4">
@@ -289,7 +295,7 @@ const Contacts = () => {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-primary-light/10 flex items-center justify-center text-primary">
-                          {contact.firstName.charAt(0)}{contact.lastName.charAt(0)}
+                    key={contact.Id}
                         </div>
                         <div>
                           <p className="font-medium">{contact.firstName} {contact.lastName}</p>
@@ -583,7 +589,7 @@ const Contacts = () => {
                         `}>
                           {currentContact.status}
                         </span>
-                      </div>
+                      </span> 
                     </div>
                   </div>
                   

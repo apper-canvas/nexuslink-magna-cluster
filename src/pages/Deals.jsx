@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import ApperIcon from '../components/ApperIcon';
+import { getDeals, createDeal, updateDeal, updateDealStage, deleteDeal } from '../services/dealService';
 
 const Deals = () => {
   // Deal stages for kanban board
@@ -12,61 +13,10 @@ const Deals = () => {
     { id: 'negotiation', name: 'Negotiation', color: 'bg-yellow-500', icon: 'MessageSquare' },
     { id: 'closed', name: 'Closed Won', color: 'bg-green-500', icon: 'Award' }
   ];
-  
-  // Initial deals data
-  const initialDeals = [
-    {
-      id: 1,
-      name: 'Software Upgrade Project',
-      company: 'Acme Corp',
-      value: '$24,000',
-      stage: 'lead',
-      contact: 'John Smith',
-      date: '2023-12-15'
-    },
-    {
-      id: 2,
-      name: 'IT Consulting Services',
-      company: 'TechSolutions Inc.',
-      value: '$12,500',
-      stage: 'qualified',
-      contact: 'Sarah Johnson',
-      date: '2023-12-20'
-    },
-    {
-      id: 3,
-      name: 'Data Migration',
-      company: 'Global Industries',
-      value: '$35,750',
-      stage: 'proposal',
-      contact: 'Michael Davis',
-      date: '2024-01-10'
-    },
-    {
-      id: 4,
-      name: 'Cloud Infrastructure',
-      company: 'Innovate Systems',
-      value: '$48,200',
-      stage: 'negotiation',
-      contact: 'Laura Chen',
-      date: '2024-01-05'
-    },
-    {
-      id: 5,
-      name: 'Security Assessment',
-      company: 'SecureTech',
-      value: '$18,600',
-      stage: 'closed',
-      contact: 'Robert Wilson',
-      date: '2023-11-30'
-    }
-  ];
-  
-  const [deals, setDeals] = useState(() => {
-    const savedDeals = localStorage.getItem('crm-deals');
-    return savedDeals ? JSON.parse(savedDeals) : initialDeals;
-  });
-  
+
+  const [deals, setDeals] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [showNewDealForm, setShowNewDealForm] = useState(false);
   const [draggedDeal, setDraggedDeal] = useState(null);
   const [currentFilter, setCurrentFilter] = useState('all');
@@ -81,11 +31,28 @@ const Deals = () => {
     contact: '',
     date: new Date().toISOString().split('T')[0]
   });
-  
-  // Save deals to localStorage whenever they change
+
+  // Fetch deals from API
   useEffect(() => {
-    localStorage.setItem('crm-deals', JSON.stringify(deals));
-  }, [deals]);
+    const fetchDeals = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const filters = {
+          searchTerm,
+          stage: currentFilter !== 'all' ? currentFilter : undefined
+        };
+        const data = await getDeals(filters);
+        setDeals(data);
+      } catch (err) {
+        setError('Failed to fetch deals. Please try again later.');
+        toast.error('Error loading deals');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDeals();
+  }, []);
   
   // Handle input change for the form
   const handleInputChange = (e) => {
@@ -96,34 +63,80 @@ const Deals = () => {
     });
   };
   
-  // Handle form submission for new deal
-  const handleSubmit = (e) => {
+  // Handle form submission for new deal with API
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Validate form
     if (!formData.name || !formData.company || !formData.value) {
       toast.error('Please fill in all required fields');
       return;
+    } 
+
+    try {
+      setIsLoading(true);
+      
+      // Prepare deal data for API
+      const dealData = {
+        Name: formData.name,
+        company: formData.company,
+        value: formData.value,
+        stage: formData.stage,
+        contact: formData.contact,
+        date: formData.date
+      };
+      
+      // Call API to create new deal
+      const newDeal = await createDeal(dealData);
+      
+      // Update state with new deal
+      setDeals([...deals, newDeal]);
+      
+      // Reset form
+      setFormData({
+        name: '',
+        company: '',
+        value: '',
+        stage: 'lead',
+        contact: '',
+        date: new Date().toISOString().split('T')[0]
+      });
+      
+      setShowNewDealForm(false);
+      toast.success('New deal has been created!');
+    } catch (error) {
+      console.error('Error creating deal:', error);
+      toast.error('Failed to create new deal');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Handle deal stage update with API
+  const handleDrop = async (stageId) => {
+    if (draggedDeal && draggedDeal.stage !== stageId) {
+      try {
+        setIsLoading(true);
+        
+        // Call API to update deal stage
+        const updatedDeal = await updateDealStage(draggedDeal.Id, stageId);
+        
+        // Update state with updated deal
+        const updatedDeals = deals.map(deal => 
+          deal.Id === draggedDeal.Id ? updatedDeal : deal
+        );
+        
+        setDeals(updatedDeals);
+        toast.info(`"${draggedDeal.Name}" moved to ${stages.find(s => s.id === stageId).name}`);
+      } catch (error) {
+        console.error('Error updating deal stage:', error);
+        toast.error('Failed to update deal stage');
+      } finally {
+        setIsLoading(false);
+      }
     }
     
-    // Create new deal
-    const newDeal = {
-      id: deals.length > 0 ? Math.max(...deals.map(deal => deal.id)) + 1 : 1,
-      ...formData
-    };
-    
-    setDeals([...deals, newDeal]);
-    setFormData({
-      name: '',
-      company: '',
-      value: '',
-      stage: 'lead',
-      contact: '',
-      date: new Date().toISOString().split('T')[0]
-    });
-    
-    setShowNewDealForm(false);
-    toast.success('New deal has been created!');
+    setDraggedDeal(null);
   };
   
   // Handle drag start
@@ -131,26 +144,26 @@ const Deals = () => {
     setDraggedDeal(deal);
   };
   
-  // Handle drop on stage
-  const handleDrop = (stageId) => {
-    if (draggedDeal && draggedDeal.stage !== stageId) {
-      const updatedDeals = deals.map(deal => 
-        deal.id === draggedDeal.id ? { ...deal, stage: stageId } : deal
-      );
-      
-      setDeals(updatedDeals);
-      toast.info(`"${draggedDeal.name}" moved to ${stages.find(s => s.id === stageId).name}`);
-    }
-    
-    setDraggedDeal(null);
-  };
-  
   // Handle deal deletion
-  const handleDeleteDeal = (id) => {
+  const handleDeleteDeal = async (id) => {
     if (window.confirm('Are you sure you want to delete this deal?')) {
-      const updatedDeals = deals.filter(deal => deal.id !== id);
-      setDeals(updatedDeals);
-      toast.success('Deal deleted successfully');
+      try {
+        setIsLoading(true);
+        
+        // Call API to delete deal
+        await deleteDeal(id);
+        
+        // Update state by removing the deleted deal
+        const updatedDeals = deals.filter(deal => deal.Id !== id);
+        setDeals(updatedDeals);
+        
+        toast.success('Deal deleted successfully');
+      } catch (error) {
+        console.error('Error deleting deal:', error);
+        toast.error('Failed to delete deal');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
   
@@ -186,6 +199,16 @@ const Deals = () => {
           Manage your sales pipeline and track deal progress
         </p>
       </div>
+
+      {/* Loading and Error States */}
+      {isLoading && (
+        <div className="flex justify-center my-6">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      )}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">{error}</div>
+      )}
 
       {/* Stats Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -270,7 +293,7 @@ const Deals = () => {
                 <div className="space-y-3">
                   {dealsByStage[stage.id]?.map((deal) => (
                     <motion.div
-                      key={deal.id}
+                      key={deal.Id}
                       layout
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -279,18 +302,18 @@ const Deals = () => {
                       className="bg-white dark:bg-surface-700 p-3 rounded-lg shadow-soft cursor-grab"
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium text-sm line-clamp-1">{deal.name}</h4>
+                        <h4 className="font-medium text-sm line-clamp-1">{deal.Name}</h4>
                         <div className="dropdown relative ml-2">
                           <button className="p-1 rounded-full hover:bg-surface-100 dark:hover:bg-surface-600">
                             <ApperIcon name="MoreVertical" size={14} className="text-surface-500" />
                           </button>
                           <div 
                             className="hidden absolute right-0 mt-1 py-1 w-36 bg-white dark:bg-surface-700 shadow-lg rounded-lg z-10"
-                            onClick={() => handleDeleteDeal(deal.id)}
+                            onClick={() => handleDeleteDeal(deal.Id)}
                           >
                             <button className="w-full text-left px-3 py-1.5 text-sm text-red-500 hover:bg-surface-100 dark:hover:bg-surface-600 flex items-center gap-2">
                               <ApperIcon name="Trash2" size={14} />
-                              Delete
+                              Delete 
                             </button>
                           </div>
                         </div>

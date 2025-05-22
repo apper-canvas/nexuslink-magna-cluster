@@ -51,7 +51,7 @@ const ContactForm = ({ contact = null, onSubmit, onCancel }) => {
   
   const validate = () => {
     const newErrors = {};
-    
+
     if (!formData.firstName.trim()) {
       newErrors.firstName = 'First name is required';
     }
@@ -72,7 +72,7 @@ const ContactForm = ({ contact = null, onSubmit, onCancel }) => {
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }; 
   
   const handleSubmit = (e) => {
     e.preventDefault();

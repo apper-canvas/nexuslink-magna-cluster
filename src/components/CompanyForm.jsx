@@ -9,17 +9,14 @@ const CompanyForm = ({
   initialData = null 
 }) => {
   const defaultFormData = {
-    id: crypto.randomUUID(),
     name: '',
     industry: '',
     size: '',
     location: '',
     website: '',
     description: '',
-    contacts: [],
-    deals: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    // Not including contacts and deals as they're handled separately in the backend
+    // and can be fetched via relationships
   };
 
   const [formData, setFormData] = useState(defaultFormData);
@@ -81,13 +78,8 @@ const CompanyForm = ({
     e.preventDefault();
     
     if (!validateForm()) return;
-    
-    const updatedData = {
-      ...formData,
-      updatedAt: new Date().toISOString()
-    };
-    
-    onSubmit(updatedData);
+
+    onSubmit(formData);
     onClose();
   };
 
