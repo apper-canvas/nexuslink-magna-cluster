@@ -293,7 +293,7 @@ const Companies = () => {
                         <td className="py-3 px-4 text-surface-600 dark:text-surface-400">{company?.size}</td>
                         <td className="py-3 px-4 text-right">
                           <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                            <button 
+                            <button key={`edit-${company?.Id}`}
                               onClick={() => handleEditCompany(company)}
                               className="p-1.5 rounded hover:bg-surface-200 dark:hover:bg-surface-700"
                             >
@@ -301,7 +301,7 @@ const Companies = () => {
                             </button>
                             <button 
                               onClick={() => handleDeleteCompany(company)}
-                              className="p-1.5 rounded hover:bg-surface-200 dark:hover:bg-surface-700"
+                              className="p-1.5 rounded hover:bg-surface-200 dark:hover:bg-surface-700" key={`delete-${company?.Id}`}
                             >
                               <ApperIcon name="Trash2" size={16} className="text-surface-600 dark:text-surface-400" />
                             </button>
@@ -325,7 +325,7 @@ const Companies = () => {
                 <div className="flex gap-2">
                   <button 
                     onClick={() => handleEditCompany(selectedCompany)}
-                    className="p-1.5 rounded hover:bg-surface-100 dark:hover:bg-surface-700"
+                                    className="p-1.5 rounded hover:bg-surface-100 dark:hover:bg-surface-700" key={`edit-detail-${selectedCompany?.Id}`}
                   >
                     <ApperIcon name="Edit" size={16} className="text-surface-600 dark:text-surface-400" />
                   </button>
@@ -374,8 +374,8 @@ const Companies = () => {
                   {selectedCompany?.deals && selectedCompany?.deals.length > 0 ? (
                     <div className="space-y-2">
                       {selectedCompany.deals.map(dealId => (
-                        <Link 
-                          key={dealId}
+                                        <Link
+                                          key={`deal-${dealId}`}
                           to={`/deals?id=${dealId}`}
                           className="block p-2 rounded-lg bg-surface-100 dark:bg-surface-800 hover:bg-surface-200 dark:hover:bg-surface-700"
                         > 
@@ -383,7 +383,7 @@ const Companies = () => {
                             <ApperIcon name="BadgeDollarSign" size={16} className="text-accent" />
                             <span>Deal #{dealId}</span>
                           </div>
-                        </Link>
+                                        </Link>
                       ))}
                     </div>
                   ) : (
@@ -397,7 +397,7 @@ const Companies = () => {
                     <div className="space-y-2">
                       {selectedCompany.contacts.map(contactId => (
                         <Link 
-                          key={contactId}
+                                          key={`contact-${contactId}`}
                           to={`/contacts?id=${contactId}`}
                           className="block p-2 rounded-lg bg-surface-100 dark:bg-surface-800 hover:bg-surface-200 dark:hover:bg-surface-700"
                         >
