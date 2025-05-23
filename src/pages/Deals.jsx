@@ -52,7 +52,7 @@ const Deals = () => {
       }
     };
     fetchDeals();
-  }, []);
+  }, [searchTerm, currentFilter]);
   
   // Handle input change for the form
   const handleInputChange = (e) => {
@@ -127,7 +127,7 @@ const Deals = () => {
         );
         
         setDeals(updatedDeals);
-        toast.info(`"${draggedDeal.Name}" moved to ${stages.find(s => s.id === stageId).name}`);
+        toast.info(`"${draggedDeal?.Name || 'Deal'}" moved to ${stages.find(s => s.id === stageId)?.name || stageId}`);
       } catch (error) {
         console.error('Error updating deal stage:', error);
         toast.error('Failed to update deal stage');
@@ -170,24 +170,24 @@ const Deals = () => {
   // Filter deals based on current filter and search term
   const filteredDeals = deals.filter(deal => {
     const matchesFilter = currentFilter === 'all' || deal.stage === currentFilter;
-    const matchesSearch = 
+    const matchesSearch =
       searchTerm === '' || 
-      deal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      deal.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      deal.contact.toLowerCase().includes(searchTerm.toLowerCase());
+      deal?.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      deal?.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      deal?.contact?.toLowerCase().includes(searchTerm.toLowerCase());
     
     return matchesFilter && matchesSearch;
   });
   
   // Group deals by stage
   const dealsByStage = stages.reduce((acc, stage) => {
-    acc[stage.id] = filteredDeals.filter(deal => deal.stage === stage.id);
+    acc[stage.id] = filteredDeals.filter(deal => deal?.stage === stage.id);
     return acc;
   }, {});
 
   // Calculate total deal value
   const totalDealValue = deals.reduce((sum, deal) => {
-    const value = parseFloat(deal.value.replace(/[^0-9.-]+/g, ""));
+    const value = parseFloat(deal?.value?.replace(/[^0-9.-]+/g, "") || 0);
     return isNaN(value) ? sum : sum + value;
   }, 0);
   
@@ -218,7 +218,7 @@ const Deals = () => {
         </div>
         <div className="card p-4">
           <p className="text-surface-500 dark:text-surface-400 text-sm">Active Deals</p>
-          <h3 className="text-2xl font-bold mt-1">{deals.filter(d => d.stage !== 'closed').length}</h3>
+          <h3 className="text-2xl font-bold mt-1">{deals.filter(d => d?.stage !== 'closed').length}</h3>
         </div>
         <div className="card p-4">
           <p className="text-surface-500 dark:text-surface-400 text-sm">Total Value</p>
@@ -325,10 +325,10 @@ const Deals = () => {
                       
                       <div className="flex justify-between items-center mb-2">
                         <div className="font-medium text-primary-dark">
-                          {deal.value}
+                          {deal?.value || '$0'}
                         </div>
                         <div className="text-xs text-surface-500">
-                          {new Date(deal.date).toLocaleDateString()}
+                          {deal?.date ? new Date(deal.date).toLocaleDateString() : 'No date'}
                         </div>
                       </div>
                       
