@@ -1,6 +1,5 @@
 import { useState, useEffect, createContext } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser, clearUser } from './store/userSlice';
@@ -137,10 +136,8 @@ function App() {
         await ApperUI.logout();
         dispatch(clearUser());
         navigate('/login');
-        toast.info("You have been logged out");
       } catch (error) {
         console.error("Logout failed:", error);
-        toast.error("Logout failed");
       }
     }
   };
@@ -225,20 +222,6 @@ function App() {
             &copy; {new Date().getFullYear()} NexusLink CRM. All rights reserved.
           </div>
         </footer>
-        
-        {/* Toast Container */}
-        <ToastContainer
-          position="top-right"
-          autoClose={4000}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme={darkMode ? "dark" : "light"}
-        />
       </div>
     </AuthContext.Provider>
   );
