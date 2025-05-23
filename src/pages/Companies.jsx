@@ -106,7 +106,7 @@ const Companies = () => {
           prevCompanies.map(company => company?.Id === currentCompany?.Id ? updatedCompany : company)
         );
         
-        toast.success(`${companyData.Name} updated successfully`);
+        toast.success(`${companyData?.name || 'Company'} updated successfully`);
       } catch (error) {
         console.error('Error updating company:', error);
         toast.error('Failed to update company');
@@ -133,7 +133,7 @@ const Companies = () => {
         // Add new company to state
         setCompanies(prevCompanies => [...prevCompanies, newCompany]);
         
-        toast.success(`${companyData.Name} added successfully`);
+        toast.success(`${companyData?.name || 'Company'} added successfully`);
       } catch (error) {
         console.error('Error creating company:', error);
         toast.error('Failed to create company');
@@ -160,7 +160,7 @@ const Companies = () => {
       // Update state by removing the deleted company
       setCompanies(prevCompanies => prevCompanies.filter(company => company?.Id !== confirmDelete?.Id));
       
-      toast.success(`${confirmDelete.Name} deleted successfully`);
+      toast.success(`${confirmDelete?.Name || 'Company'} deleted successfully`);
       
       // If the deleted company is the currently selected one, clear the selection
       if (selectedCompany && selectedCompany?.Id === confirmDelete?.Id) {
@@ -287,7 +287,7 @@ const Companies = () => {
                         className={`border-b border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 cursor-pointer ${selectedCompany?.Id === company?.Id ? 'bg-primary-light/10' : ''}`}
                         onClick={() => handleViewCompany(company)} 
                       >
-                        <td className="py-3 px-4 font-medium">{company.Name}</td>
+                        <td className="py-3 px-4 font-medium">{company?.Name}</td>
                         <td className="py-3 px-4 text-surface-600 dark:text-surface-400">{company?.industry}</td>
                         <td className="py-3 px-4 text-surface-600 dark:text-surface-400">{company?.location}</td>
                         <td className="py-3 px-4 text-surface-600 dark:text-surface-400">{company?.size}</td>
@@ -443,7 +443,7 @@ const Companies = () => {
           >
             <h3 className="text-lg font-semibold text-surface-900 dark:text-white mb-2">Confirm Deletion</h3>
             <p className="text-surface-700 dark:text-surface-300 mb-4">
-              Are you sure you want to delete <span className="font-semibold">{confirmDelete.Name}</span>? This action cannot be undone.
+              Are you sure you want to delete <span className="font-semibold">{confirmDelete?.Name || 'this company'}</span>? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-3">
               <button 
