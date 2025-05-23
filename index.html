@@ -6,6 +6,16 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>NexusLink CRM | Manage Customer Relationships Effectively</title>
     <meta name="description" content="NexusLink CRM helps you track, manage and nurture customer interactions throughout the entire customer lifecycle" />
+    <script>
+      // TypeInfo polyfill to fix the "ReferenceError: TypeInfo is not defined" error
+      if (typeof TypeInfo === 'undefined') {
+        window.TypeInfo = function(obj) {
+          this.obj = obj;
+          this.getType = function() { return typeof this.obj; };
+          this.getName = function() { return this.obj?.constructor?.name || 'Unknown'; };
+        };
+      }
+    </script>
     <script src="https://test-cdn.apper.io/v1/apper-sdk.v1.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   </head>
