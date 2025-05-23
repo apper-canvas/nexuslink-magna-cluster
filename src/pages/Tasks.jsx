@@ -320,10 +320,10 @@ const Tasks = () => {
                 </tr>
               ) : (
                 filteredTasks.map(task => (
-                  <tr key={task.id} className="hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">
+                  <tr key={task.Id} className="hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap"> 
                       <button 
-                        onClick={() => handleToggleStatus(task.id, task.status)}
+                        onClick={() => handleToggleStatus(task.Id, task.status)}
                         className="flex items-center justify-center"
                       >
                         {task.status === 'completed' ? (
@@ -379,7 +379,7 @@ const Tasks = () => {
                         <ApperIcon name="Edit" size={16} />
                       </button>
                       <button
-                        onClick={() => handleDeleteTask(task.id)}
+                        onClick={() => handleDeleteTask(task.Id)}
                         className="text-red-500 hover:text-red-700"
                       >
                         <ApperIcon name="Trash" size={16} />
