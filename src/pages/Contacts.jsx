@@ -290,7 +290,7 @@ const Contacts = () => {
               {currentItems.length > 0 ? (
                 currentItems.map(contact => (
                   <tr 
-                    key={contact.id}
+                    key={contact.Id}
                     className="hover:bg-surface-50 dark:hover:bg-surface-800"
                   >
                     <td className="px-4 py-3">
@@ -389,7 +389,7 @@ const Contacts = () => {
               
               {[...Array(totalPages)].map((_, i) => (
                 <button
-                  key={i}
+                  key={i + 1}
                   onClick={() => handlePageChange(i + 1)}
                   className={`w-8 h-8 rounded-full ${currentPage === i + 1 ? 'bg-primary text-white' : 'hover:bg-surface-100 dark:hover:bg-surface-700'}`}
                 >
