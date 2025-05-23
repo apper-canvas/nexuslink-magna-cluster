@@ -22,6 +22,7 @@ export const AuthContext = createContext(null);
 function App() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [isInitializationAttempted, setIsInitializationAttempted] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem('darkMode') === 'true' || window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -47,74 +48,85 @@ function App() {
 
   // Initialize ApperUI once when the app loads
   useEffect(() => {
-    const { ApperClient, ApperUI } = window.ApperSDK;
-    const client = new ApperClient({
-      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
-      apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
-    });
-    
-    // Initialize but don't show login yet
-    ApperUI.setup(client, {
-      target: '#authentication',
-      clientId: import.meta.env.VITE_APPER_PROJECT_ID,
-      view: 'both',
-      onSuccess: function (user) {
-        setIsInitialized(true);
-        // CRITICAL: This exact currentPath logic must be preserved in all implementations
-        // DO NOT simplify or modify this pattern as it ensures proper redirection flow
-        let currentPath = window.location.pathname + window.location.search;
-        let redirectPath = new URLSearchParams(window.location.search).get('redirect');
-        const isAuthPage = currentPath.includes('/login') || currentPath.includes('/signup') || currentPath.includes(
-                '/callback') || currentPath.includes('/error');
-        if (user) {
-            // User is authenticated
-            if (redirectPath) {
-                navigate(redirectPath);
-            } else if (!isAuthPage) {
-                if (!currentPath.includes('/login') && !currentPath.includes('/signup')) {
-                    navigate(currentPath);
+    // Only try to initialize once to prevent infinite loops
+    if (!isInitializationAttempted) {
+      setIsInitializationAttempted(true);
+      
+      try {
+        const { ApperClient, ApperUI } = window.ApperSDK;
+        const client = new ApperClient({
+          apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+          apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+        });
+        
+        // Initialize but don't show login yet
+        ApperUI.setup(client, {
+          target: '#authentication',
+          clientId: import.meta.env.VITE_APPER_PROJECT_ID,
+          view: 'both',
+          onSuccess: function (user) {
+            setIsInitialized(true);
+            // CRITICAL: This exact currentPath logic must be preserved in all implementations
+            // DO NOT simplify or modify this pattern as it ensures proper redirection flow
+            let currentPath = window.location.pathname + window.location.search;
+            let redirectPath = new URLSearchParams(window.location.search).get('redirect');
+            const isAuthPage = currentPath.includes('/login') || currentPath.includes('/signup') || currentPath.includes(
+                    '/callback') || currentPath.includes('/error');
+            if (user) {
+                // User is authenticated
+                if (redirectPath) {
+                    navigate(redirectPath);
+                } else if (!isAuthPage) {
+                    if (!currentPath.includes('/login') && !currentPath.includes('/signup')) {
+                        navigate(currentPath);
+                    } else {
+                        navigate('/');
+                    }
                 } else {
                     navigate('/');
                 }
+                // Store user information in Redux
+                dispatch(setUser(JSON.parse(JSON.stringify(user))));
             } else {
-                navigate('/');
-            }
-            // Store user information in Redux
-            dispatch(setUser(JSON.parse(JSON.stringify(user))));
-        } else {
-            // User is not authenticated
-            if (!isAuthPage) {
-                navigate(
-                    currentPath.includes('/signup')
-                     ? `/signup?redirect=${currentPath}`
-                     : currentPath.includes('/login')
-                     ? `/login?redirect=${currentPath}`
-                     : '/login');
-            } else if (redirectPath) {
-                if (
-                    ![
-                        'error',
-                        'signup',
-                        'login',
-                        'callback'
-                    ].some((path) => currentPath.includes(path)))
-                    navigate(`/login?redirect=${redirectPath}`);
-                else {
+                // User is not authenticated
+                if (!isAuthPage) {
+                    navigate(
+                        currentPath.includes('/signup')
+                         ? `/signup?redirect=${currentPath}`
+                         : currentPath.includes('/login')
+                         ? `/login?redirect=${currentPath}`
+                         : '/login');
+                } else if (redirectPath) {
+                    if (
+                        ![
+                            'error',
+                            'signup',
+                            'login',
+                            'callback'
+                        ].some((path) => currentPath.includes(path)))
+                        navigate(`/login?redirect=${redirectPath}`);
+                    else {
+                        navigate(currentPath);
+                    }
+                } else if (isAuthPage) {
                     navigate(currentPath);
+                } else {
+                    navigate('/login');
                 }
-            } else if (isAuthPage) {
-                navigate(currentPath);
-            } else {
-                navigate('/login');
+                dispatch(clearUser());
             }
-            dispatch(clearUser());
-        }
-      },
-      onError: function(error) {
-        console.error("Authentication failed:", error);
+          },
+          onError: function(error) {
+            console.error("Authentication failed:", error);
+            setIsInitialized(true); // Still set as initialized to avoid blocking the UI
+          }
+        });
+      } catch (error) {
+        console.error("Failed to initialize ApperUI:", error);
+        setIsInitialized(true); // Still set as initialized to avoid blocking the UI
       }
-    });
-  }, [navigate, dispatch]);
+    }
+  }, []); // Empty dependency array to ensure this runs only once
   
   // Authentication methods to share via context
   const authMethods = {
