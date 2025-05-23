@@ -61,7 +61,7 @@ const Companies = () => {
     } 
     
     if (sizeFilter) {
-      result = result.filter(company => company.size === sizeFilter);
+      result = result.filter(company => company?.size === sizeFilter);
     }
     
     setFilteredCompanies(result);
@@ -99,11 +99,11 @@ const Companies = () => {
           description: companyData.description,
         };
         
-        const updatedCompany = await updateCompany(currentCompany.Id, apiCompanyData);
+        const updatedCompany = await updateCompany(currentCompany?.Id, apiCompanyData);
         
         // Update state with new company data
         setCompanies(prevCompanies => 
-          prevCompanies.map(company => company.Id === currentCompany.Id ? updatedCompany : company)
+          prevCompanies.map(company => company?.Id === currentCompany?.Id ? updatedCompany : company)
         );
         
         toast.success(`${companyData.Name} updated successfully`);
@@ -155,15 +155,15 @@ const Companies = () => {
       setIsLoading(true);
       
       // Delete company - API call
-      await deleteCompany(confirmDelete.Id);
+      await deleteCompany(confirmDelete?.Id);
       
       // Update state by removing the deleted company
-      setCompanies(prevCompanies => prevCompanies.filter(company => company.Id !== confirmDelete.Id));
+      setCompanies(prevCompanies => prevCompanies.filter(company => company?.Id !== confirmDelete?.Id));
       
       toast.success(`${confirmDelete.Name} deleted successfully`);
       
       // If the deleted company is the currently selected one, clear the selection
-      if (selectedCompany && selectedCompany.Id === confirmDelete.Id) {
+      if (selectedCompany && selectedCompany?.Id === confirmDelete?.Id) {
         setSelectedCompany(null);
       }
     } catch (error) {
@@ -283,8 +283,8 @@ const Companies = () => {
                   <tbody>
                     {filteredCompanies.map(company => (
                       <tr 
-                        key={company.Id}
-                        className={`border-b border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 cursor-pointer ${selectedCompany?.Id === company.Id ? 'bg-primary-light/10' : ''}`}
+                        key={company?.Id}
+                        className={`border-b border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 cursor-pointer ${selectedCompany?.Id === company?.Id ? 'bg-primary-light/10' : ''}`}
                         onClick={() => handleViewCompany(company)} 
                       >
                         <td className="py-3 px-4 font-medium">{company.Name}</td>
@@ -348,7 +348,7 @@ const Companies = () => {
                   <p className="text-surface-900 dark:text-white">{selectedCompany?.location}</p>
                 </div>
                 
-                {selectedCompany.website && (
+                {selectedCompany?.website && (
                   <div>
                     <h3 className="text-sm font-medium text-surface-500 dark:text-surface-400 mb-1">Website</h3>
                     <a 
@@ -357,12 +357,12 @@ const Companies = () => {
                       rel="noopener noreferrer"
                       className="text-primary hover:text-primary-dark dark:text-primary-light dark:hover:text-primary"
                      >
-                      {selectedCompany.website}
+                      {selectedCompany?.website}
                     </a>
                   </div>
                 )}
                 
-                {selectedCompany.description && (
+                {selectedCompany?.description && (
                   <div>
                     <h3 className="text-sm font-medium text-surface-500 dark:text-surface-400 mb-1">Description</h3>
                     <p className="text-surface-900 dark:text-white">{selectedCompany?.description}</p>
@@ -371,7 +371,7 @@ const Companies = () => {
                 
                 <div className="pt-2">
                   <h3 className="text-sm font-medium text-surface-500 dark:text-surface-400 mb-2">Associated Deals</h3>
-                  {selectedCompany.deals && selectedCompany.deals.length > 0 ? (
+                  {selectedCompany?.deals && selectedCompany?.deals.length > 0 ? (
                     <div className="space-y-2">
                       {selectedCompany.deals.map(dealId => (
                         <Link 
@@ -393,7 +393,7 @@ const Companies = () => {
                 
                 <div className="pt-2">
                   <h3 className="text-sm font-medium text-surface-500 dark:text-surface-400 mb-2">Associated Contacts</h3>
-                  {selectedCompany.contacts && selectedCompany.contacts.length > 0 ? (
+                  {selectedCompany?.contacts && selectedCompany?.contacts.length > 0 ? (
                     <div className="space-y-2">
                       {selectedCompany.contacts.map(contactId => (
                         <Link 
